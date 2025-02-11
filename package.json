@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node index",
-    "dev": "nodemon index"
+    "dev": "nodemon index",
+    "build": "netlify deploy --prod"
   },
   "keywords": [],
   "author": "",
