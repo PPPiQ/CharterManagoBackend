@@ -1,14 +1,13 @@
 const express = require("express");
 const cors = require("cors");
-// const cookieSession = require("cookie-session");
 const cookieParser = require("cookie-parser");
+const morgan = require("morgan");
 const app = express();
 const dotenv = require("dotenv");
-const morgan = require("morgan");
-
-
+const router = express.Router();
 // middleware
-dotenv.config({ path: "./config/config.env" });
+
+dotenv.config({ path: "./functions/config/config.env" });
 require("./config/Db");
 
 var corsOptions = {
@@ -18,19 +17,11 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-
+app.use("/.backend/functions/app", router);
 
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
-// app.use(
-//   cookieSession({
-//     name: "sessionToken",
-//     keys: [process.env.REFRESH_TOKEN_SECRE, process.env.ACCESS_TOKEN_SECRET],
-//     httpOnly: true,
-//   })
-// );
-
 app.use(morgan("dev")); // logger
 
 // Routes

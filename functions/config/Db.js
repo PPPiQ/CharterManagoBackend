@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 const db = require("../models");
 const Role = db.role;
 
+
+console.log(`PATCH: ${process.env.MONGO_URI} `)
+
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {

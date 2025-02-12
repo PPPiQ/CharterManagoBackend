@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "./functions/app.js",
   "scripts": {
     "start": "node index",
     "dev": "nodemon index",
@@ -23,6 +23,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "netlify-cli": "^18.0.4",
     "nodemon": "^3.1.9"
   }
 }
