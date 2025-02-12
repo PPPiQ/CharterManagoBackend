@@ -12,7 +12,7 @@ require("./config/Db");
 
 var corsOptions = {
   credentials: true,
-  origin: ["http://localhost:4200", "http://127.0.0.1:5000/", "http://localhost:4200/", "http://localhost:4200/api/v1"],
+  // origin: ["http://localhost:4200", "http://127.0.0.1:5000/", "http://localhost:4200/", "http://localhost:4200/api/v1"],
 };
 
 app.use(cors(corsOptions));
@@ -29,7 +29,7 @@ app.use("/api/v1", require("./routes/auth"));
 
 // simple route
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to bezkoder application." });
+  res.json({ message: "Welcome to charter manago application." });
 });
 
 PORT = process.env.PORT || 5000;
