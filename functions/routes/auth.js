@@ -86,13 +86,13 @@ router.post("/login", async (req, res) => {
     const refreshToken = jwt.sign(
       { id: user._id },
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1h" }
     );
 
     res.cookie("sessionToken", refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "None",
+      secure: true,
+      sameSite: "strict",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -106,10 +106,6 @@ router.post("/login", async (req, res) => {
 // GET api/vi/user | private | get logged in user for the process of auth
 router.get("/user", verifyAuth, async (req, res) => {
   try {
-    console.log("passed token with user: ");
-
-    console.log(req.cookies?.sessionToken);
-
     const user = await User.findById(req.user.id);
     res.status(200).json({
       user,
@@ -124,10 +120,7 @@ router.get("/user", verifyAuth, async (req, res) => {
 router.post("/refresh", (req, res) => {
   // let rawToken = req.headers?.cookie;
   // const token = rawToken && rawToken.split('=')[1];
-  const refreshToken = req.cookies?.sessionToken;
-  console.log("Session token");
-  console.log(refreshToken);
-  
+  const refreshToken = req?.cookies?.sessionToken;
   if (refreshToken) {
 
 
@@ -138,7 +131,7 @@ router.post("/refresh", (req, res) => {
       (err, decoded) => {
         if (err) {
           // Wrong Refesh Token
-          return res.status(406).json({ message: "Unauthorized 2" });
+          return res.status(406).json({ message: "Unauthorized" });
         } else {
           // Correct token we send a new access token
           const accessToken = jwt.sign(
@@ -151,7 +144,7 @@ router.post("/refresh", (req, res) => {
       }
     );
   } else {
-    return res.status(406).json({ message: "Unauthorized 1" });
+    return res.status(406).json({ message: "Unauthorized" });
   }
 });
 

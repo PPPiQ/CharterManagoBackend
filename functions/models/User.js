@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const Role = require("./Role");
 
 let UserSchema = new mongoose.Schema(
   {
@@ -23,7 +24,7 @@ let UserSchema = new mongoose.Schema(
     roles: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Role",
+        ref: Role
       },
     ],
   },
