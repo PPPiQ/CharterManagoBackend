@@ -2,18 +2,31 @@ const router = require("express").Router();
 const Organization = require("../models/Organization");
 const verifyAuth = require("../middleware/verifyAuth");
 
+function denyJSON() {
+  return {
+    success: false,
+  };
+}
+
 // POST | add organization
 router.post("/add-organization", verifyAuth, async (req, res) => {
   try {
-    console.log("Trying to create organization");
-    
     const newOrganization = await Organization.create({
       name: req.body.name,
     });
-    return res.status(200).json({
-      data: newOrganization,
-      success: true,
-    });
+    console.log(newOrganization);
+
+    if (newOrganization?.created_at && newOrganization.name === req.body.name) {
+      res.status(200).json({
+        data: newOrganization,
+        success: true,
+      });
+    } else {
+      res.status(400).json({
+        msg: "error on organization craetion.",
+        success: false,
+      });
+    }
   } catch (error) {
     res.status(400).json({
       msg: "error on organization craetion.",
@@ -37,5 +50,45 @@ router.get("/organizations", async (req, res) => {
   }
 });
 
+// DELETE | /api/v1/delete/:id | Private | deletes organization selected by id
+router.delete("/delete/:id", verifyAuth, async (req, res) => {
+  try {
+    if (req.params && req.params.id) {
+      const org = await Organization.findById(req.params.id);
+      const deletionResult = await Organization.collection.deleteOne(org);
+
+      if (deletionResult?.acknowledged && deletionResult?.deletedCount === 1) {
+        res.status(200).json({ success: true });
+      }
+    } else {
+      res.status(400).json(denyJSON());
+    }
+  } catch (e) {
+    console.log(err);
+    res.status(400).json(denyJSON());
+  }
+  // try {
+
+  //   const org = await Organization.findById(req.params.id);
+
+  //   if (!org) {
+  //     res.status(400).json(denyJSON());
+  //   }
+
+  //   if (!org.id == req.params.id) {
+  //     res.status(400).json(denyJSON());
+  //   } else {
+  //     const deletionResult = await org.deleteOne();
+  //     if (deletionResult.acknowledged) {
+  //       res.status(200).json({ success: true });
+  //     } else {
+  //       res.status(400).json(denyJSON());
+  //     }
+  //   }
+  // } catch (error) {
+  //   console.log(err);
+  //   res.status(400).json(denyJSON());
+  // }
+});
 
 module.exports = router;
