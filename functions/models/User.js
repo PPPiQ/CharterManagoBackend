@@ -44,6 +44,7 @@ UserSchema.pre("save", async function (next) {
     "/" +
     date_info.getFullYear();
   this.created_at = await date_into;
+  this.roles.push("user")
 });
 
 module.exports = mongoose.model("user", UserSchema);

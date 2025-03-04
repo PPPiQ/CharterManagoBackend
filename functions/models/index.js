@@ -5,6 +5,7 @@ const db = {};
 
 db.mongoose = mongoose;
 db.user = require("./User");
+db.user_roles = require("./UserRoles")
 db.role = require("./Role");
 db.offer = require("./Offer");
 db.organization = require("./Organization")

@@ -3,6 +3,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const verifyAuth = require("../middleware/verifyAuth");
+const UserRoles = require("../models/UserRoles");
+const Role = require("../models/Role");
 
 const INVALID_CREDENTIALS_STR = "invalid credentials";
 
@@ -122,8 +124,6 @@ router.post("/refresh", (req, res) => {
   // const token = rawToken && rawToken.split('=')[1];
   const refreshToken = req?.cookies?.sessionToken;
   if (refreshToken) {
-
-
     // Verifying refresh token
     jwt.verify(
       refreshToken,
@@ -134,11 +134,9 @@ router.post("/refresh", (req, res) => {
           return res.status(406).json({ message: "Unauthorized" });
         } else {
           // Correct token we send a new access token
-          const accessToken = jwt.sign(
-            {},
-            process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: "10m" }
-          );
+          const accessToken = jwt.sign({}, process.env.ACCESS_TOKEN_SECRET, {
+            expiresIn: "10m",
+          });
           return res.json({ accessToken });
         }
       }
@@ -176,6 +174,30 @@ router.post("/logout", async (req, res) => {
     }
   } else {
     return res.status(406).json({ message: "No cookies" });
+  }
+});
+
+// GET | /apo/v1/user-roles | public | get all posts
+router.get("/user-roles", verifyAuth, async (req, res) => {
+  try {
+    const userRoles = await UserRoles.find({ user_id: req.user.id });
+    const rolesList = [];
+    if (userRoles) {
+      for (const role of userRoles) {
+        const currentRole = await Role.findOne({
+          _id: role.role_id,
+        });
+        if (currentRole) rolesList.push(currentRole.name);
+      }
+    }
+    console.log(rolesList);
+    return res.status(200).json({
+      data: rolesList,
+      success: true,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json(denyJSON());
   }
 });
 

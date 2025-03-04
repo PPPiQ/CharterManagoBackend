@@ -1,6 +1,9 @@
 const router = require("express").Router();
 const Organization = require("../models/Organization");
 const verifyAuth = require("../middleware/verifyAuth");
+const User = require("../models/User");
+const Role = require("../models/Role");
+const UserRoles = require("../models/UserRoles");
 
 function denyJSON() {
   return {
@@ -13,10 +16,30 @@ router.post("/add-organization", verifyAuth, async (req, res) => {
   try {
     const newOrganization = await Organization.create({
       name: req.body.name,
+      created_by: req.body.user,
     });
-    console.log(newOrganization);
 
     if (newOrganization?.created_at && newOrganization.name === req.body.name) {
+      const userRef = await User.findOne({ _id: req.user.id });
+      const adminRef = await Role.findOne({ name: "admin" });
+
+
+      // Update UserRoles
+      // Check if user has already role admin assigned to the user
+      const existingRole = await UserRoles.findOne({
+        user_id: userRef.id,
+        role_id: adminRef.id,
+      });
+
+      if (!existingRole) {
+        // Create owner admin role for the user
+        const result = await UserRoles.create({
+          user_id: userRef,
+          role_id: adminRef,
+        });
+      }
+
+
       res.status(200).json({
         data: newOrganization,
         success: true,
@@ -55,17 +78,20 @@ router.delete("/delete/:id", verifyAuth, async (req, res) => {
   try {
     if (req.params && req.params.id) {
       const org = await Organization.findById(req.params.id);
-      const deletionResult = await Organization.collection.deleteOne(org);
-
-      if (deletionResult?.acknowledged && deletionResult?.deletedCount === 1) {
-        res.status(200).json({ success: true });
+      if (org) {
+        const deletionResult = await Organization.collection.deleteOne(org);
+        if (
+          deletionResult?.acknowledged &&
+          deletionResult?.deletedCount === 1
+        ) {
+          return res.status(200).json({ success: true });
+        }
       }
-    } else {
-      res.status(400).json(denyJSON());
     }
+    return res.status(400).json(denyJSON());
   } catch (e) {
     console.log(err);
-    res.status(400).json(denyJSON());
+    return res.status(400).json(denyJSON());
   }
   // try {
 

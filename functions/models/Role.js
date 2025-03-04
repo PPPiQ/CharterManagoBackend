@@ -1,19 +1,23 @@
 const mongoose = require("mongoose");
 
-let RoleSchema = new mongoose.Schema({
+let RoleSchema = new mongoose.Schema(
+  {
   name: String,
+  created_at: { type: Date },
+},
+{
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
 });
 
 RoleSchema.pre("save", async function (next) {
   let role = this;
-  let date_info = new Date();
-  let date_into =
-    date_info.getDate() +
-    "/" +
-    (date_info.getMonth() + 1) +
-    "/" +
-    date_info.getFullYear();
-  this.created_at = await date_into;
+  if (this.isNew) {
+    this.created_at = await new Date();
+  }
 });
+
+
+
 
 module.exports = mongoose.model("role", RoleSchema);
