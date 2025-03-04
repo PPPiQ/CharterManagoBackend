@@ -1,0 +1,5 @@
+const router = require("express").Router();
+const Organization = require("../models/Organization");
+const verifyAuth = require("../middleware/verifyAuth");
+
+router.post()

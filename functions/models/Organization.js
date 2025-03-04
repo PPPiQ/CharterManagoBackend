@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const User = require("./User");
+const GroupRolePermission = require("./GroupRolePermission");
 
 let OrganizationSchema = new mongoose.Schema(
   {
@@ -6,6 +8,13 @@ let OrganizationSchema = new mongoose.Schema(
       type: String,
     },
     created_at: { type: Date },
+    created_by: { type: mongoose.Schema.Types.ObjectId, ref: User },
+    permissions: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: GroupRolePermission,
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },

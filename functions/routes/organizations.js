@@ -17,12 +17,13 @@ router.post("/add-organization", verifyAuth, async (req, res) => {
     const newOrganization = await Organization.create({
       name: req.body.name,
       created_by: req.body.user,
+      permissions: []
     });
 
     if (newOrganization?.created_at && newOrganization.name === req.body.name) {
       const userRef = await User.findOne({ _id: req.user.id });
       const adminRef = await Role.findOne({ name: "admin" });
-
+      
 
       // Update UserRoles
       // Check if user has already role admin assigned to the user
@@ -77,14 +78,19 @@ router.get("/organizations", async (req, res) => {
 router.delete("/delete/:id", verifyAuth, async (req, res) => {
   try {
     if (req.params && req.params.id) {
+      console.log("Request to remove organization: " + req.params.id);
       const org = await Organization.findById(req.params.id);
+      console.log(org ? "Organization " + req.params.id + " exist." : "Organization " + req.params.id + " do not exist.");
       if (org) {
-        const deletionResult = await Organization.collection.deleteOne(org);
+        const deletionResult = await Organization.deleteOne({_id: req.params.id});
         if (
           deletionResult?.acknowledged &&
           deletionResult?.deletedCount === 1
         ) {
+          console.log("Organization deletion succeeded: " + req.params.id);
           return res.status(200).json({ success: true });
+        } else {
+          console.error("Did not delted the organiztion. ");
         }
       }
     }

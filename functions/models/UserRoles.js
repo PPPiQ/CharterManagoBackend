@@ -4,13 +4,8 @@ const User = require("./User");
 
 let UserRolesSchema = new mongoose.Schema(
   {
-    user_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: User,
-    },
-    role_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: Role,
+    group_name: {
+      type: String
     },
     created_at: { type: Date },
   },
