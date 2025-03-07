@@ -5,6 +5,7 @@ const User = require("../models/User");
 const verifyAuth = require("../middleware/verifyAuth");
 const UserRoles = require("../models/UserRoles");
 const Role = require("../models/Role");
+const Group = require("../models/Group");
 
 const INVALID_CREDENTIALS_STR = "invalid credentials";
 
@@ -23,25 +24,28 @@ function raportFailure(res, err) {
 // POST | /api/v1/register | public | register user
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    let { firstName, lastName, email, password } = req.body;
 
-    if (!email || !name || !password) {
+    if (!email || !firstName || !lastName || !password) {
       res.status(400).json(denyJSON("please fill the required fields"));
     }
 
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json(denyJSON("user already exists"));
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    password = hashedPassword;
+
+    const result = await User.create({ firstName, lastName, email, password });
+
+    if (!result) {
+      return res.status(400).json(denyJSON("Ann error accurend on registration."));
     }
 
-    user = new User({ name, email, password });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-    await user.save();
+    createdUser = await User.findOne({ email });
+    console.log("Created user: ");
+    console.log(createdUser);
 
     jwt.sign(
-      { id: user._id },
+      { id: result._id },
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: 36000 },
       (err, token) => {
@@ -67,6 +71,8 @@ router.post("/login", async (req, res) => {
     let user = await User.findOne({ email }).select("+password");
 
     if (!user) {
+      console.log("User not exists. Login refusal.");
+
       return res.status(400).json(denyJSON("Invalid user"));
     }
 
@@ -102,6 +108,70 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(406).json({ success: false, msg: "Invalid credentials" });
+  }
+});
+
+// POST | /api/v1/add-group | private | add authorization group
+router.post("/add-group", verifyAuth, async (req, res) => {
+  try {
+    const { groupName } = req.body;
+
+    if (!groupName) {
+      res.status(400).json(denyJSON("please fill the required fields"));
+    }
+
+    const newOrganization = await Group.create({
+      group_name: groupName,
+    });
+
+    console.log("Group creation result is: ", newOrganization.group_name);
+
+    if (
+      newOrganization?.created_at &&
+      newOrganization.group_name === groupName
+    ) {
+      res.status(200).json({
+        success: true,
+        data: { groupName },
+      });
+    } else {
+      res.status(400).json(denyJSON());
+    }
+  } catch (error) {
+    console.log(error);
+    res.status(400).json(denyJSON());
+  }
+});
+
+// POST | /api/v1/logout | public | logout user
+router.post("/logout", async (req, res) => {
+  const refreshToken = req.cookies?.sessionToken;
+  if (refreshToken) {
+    try {
+      // Verifying refresh token
+      jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+        (err, decoded) => {
+          if (err) {
+            // Wrong Refesh Token
+            return res.status(406).json({
+              message: "Unauthorized",
+              token: "Verification incorect",
+            });
+          } else {
+            // Correct token we send a new access token
+            res.cookie("sessionToken", null);
+            const accessToken = null;
+            return res.json({ accessToken });
+          }
+        }
+      );
+    } catch (err) {
+      res.status(406).json({ message: "Error on logout" });
+    }
+  } else {
+    return res.status(406).json({ message: "No cookies" });
   }
 });
 
@@ -143,37 +213,6 @@ router.post("/refresh", (req, res) => {
     );
   } else {
     return res.status(406).json({ message: "Unauthorized" });
-  }
-});
-
-router.post("/logout", async (req, res) => {
-  const refreshToken = req.cookies?.sessionToken;
-  if (refreshToken) {
-    try {
-      // Verifying refresh token
-      jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
-        (err, decoded) => {
-          if (err) {
-            // Wrong Refesh Token
-            return res.status(406).json({
-              message: "Unauthorized",
-              token: "Verification incorect",
-            });
-          } else {
-            // Correct token we send a new access token
-            res.cookie("sessionToken", null);
-            const accessToken = null;
-            return res.json({ accessToken });
-          }
-        }
-      );
-    } catch (err) {
-      res.status(406).json({ message: "Error on logout" });
-    }
-  } else {
-    return res.status(406).json({ message: "No cookies" });
   }
 });
 

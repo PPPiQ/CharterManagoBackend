@@ -3,15 +3,14 @@ const Role = require("./Role");
 
 let UserSchema = new mongoose.Schema(
   {
-    firstname: {
+    firstName: {
       type: String,
       maxlength: 100,
     },
-    lastname: {
+    lastName: {
       type: String,
       maxlength: 100,
     },
-    name: { type: String, required: true, index: true },
     email: {
       type: String,
       required: true,
@@ -20,13 +19,7 @@ let UserSchema = new mongoose.Schema(
       match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/],
     },
     password: { type: String, required: true, select: false },
-    created_at: { type: String },
-    roles: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: Role
-      },
-    ],
+    created_at: { type: Date },
   },
   {
     toJSON: { virtuals: true },
@@ -36,15 +29,9 @@ let UserSchema = new mongoose.Schema(
 
 UserSchema.pre("save", async function (next) {
   let user = this;
-  let date_info = new Date();
-  let date_into =
-    date_info.getDate() +
-    "/" +
-    (date_info.getMonth + 1) +
-    "/" +
-    date_info.getFullYear();
-  this.created_at = await date_into;
-  this.roles.push("user")
+  if (this.isNew) {
+    this.created_at = await new Date();
+  }
 });
 
 module.exports = mongoose.model("user", UserSchema);

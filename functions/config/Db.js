@@ -3,8 +3,6 @@ const db = require("../models");
 const Role = db.role;
 const Permission = db.permission;
 
-console.log(`PATCH: ${process.env.MONGO_URI} `);
-
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
